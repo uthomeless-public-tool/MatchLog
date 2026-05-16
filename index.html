@@ -758,9 +758,21 @@ function renderBO1Analysis(recs, showAllSessions){
 
 function shareTweet(){
   const s=S.sessions.find(x=>x.id===currentSId); if(!s)return;
-  const recs=s.records||[], wins=recs.filter(r=>r.result==='win').length;
-  const text=`【${s.name}】\n戦績: ${wl(wins,recs.length-wins)} (${recs.length}試合)\n#シャドウバース #ShadowverseConnect`;
-  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`,"_blank");
+  const recs=s.records||[];
+  const wins=recs.filter(r=>r.result==='win').length;
+  const losses=recs.length-wins;
+  // デッキ別集計
+  const byDeck={};
+  recs.forEach(r=>{
+    if(!byDeck[r.myDeckId])byDeck[r.myDeckId]={w:0,l:0};
+    r.result==='win'?byDeck[r.myDeckId].w++:byDeck[r.myDeckId].l++;
+  });
+  const deckLines=Object.entries(byDeck).map(([id,d])=>{
+    const dk=getDeck(Number(id));
+    return `${dk?.name||'?'} ${d.w}-${d.l}`;
+  }).join('\n');
+  const text=`【${s.name}】\n戦績 ${wins}-${losses}${deckLines?'\n'+deckLines:''}`;
+  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`,'_blank');
 }
 
 function saveImage(){
